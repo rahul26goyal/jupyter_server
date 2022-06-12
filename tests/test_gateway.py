@@ -155,6 +155,7 @@ async def mock_gateway_request(url, **kwargs):
 
 mocked_gateway = patch("jupyter_server.gateway.managers.gateway_request", mock_gateway_request)
 mock_gateway_url = "http://mock-gateway-server:8889"
+mock_gateway_ws_url = "ws://mock-gateway-server:8889"
 mock_http_user = "alice"
 
 
@@ -171,9 +172,32 @@ def init_gateway(monkeypatch):
     GatewayClient.clear_instance()
 
 
+async def test_gateway_client_default_options(jp_serverapp):
+    assert jp_serverapp.gateway_config.gateway_enabled is False
+    assert jp_serverapp.gateway_config.url is None
+    assert jp_serverapp.gateway_config.ws_url is None
+    assert jp_serverapp.gateway_config.kernels_endpoint == "/api/kernels"
+    assert jp_serverapp.gateway_config.kernelspecs_endpoint == "/api/kernelspecs"
+    assert jp_serverapp.gateway_config.kernelspecs_resource_endpoint == "/kernelspecs"
+    assert jp_serverapp.gateway_config.request_timeout == 40.0
+    assert jp_serverapp.gateway_config.client_key is None
+    assert jp_serverapp.gateway_config.client_cert is None
+    assert jp_serverapp.gateway_config.ca_certs is None
+    assert jp_serverapp.gateway_config.http_user is None
+    assert jp_serverapp.gateway_config.http_pwd is None
+    assert jp_serverapp.gateway_config.headers == "{}"
+    assert jp_serverapp.gateway_config.auth_token == ""
+    assert jp_serverapp.gateway_config.auth_scheme == "token"
+    assert jp_serverapp.gateway_config.validate_cert is True
+    assert jp_serverapp.gateway_config.env_whitelist == ""
+    assert jp_serverapp.gateway_config.gateway_retry_interval_max == 30.0
+    assert jp_serverapp.gateway_config.gateway_retry_max == 5
+
+
 async def test_gateway_env_options(init_gateway, jp_serverapp):
     assert jp_serverapp.gateway_config.gateway_enabled is True
     assert jp_serverapp.gateway_config.url == mock_gateway_url
+    assert jp_serverapp.gateway_config.ws_url == mock_gateway_ws_url
     assert jp_serverapp.gateway_config.http_user == mock_http_user
     assert (
         jp_serverapp.gateway_config.connect_timeout == jp_serverapp.gateway_config.request_timeout
